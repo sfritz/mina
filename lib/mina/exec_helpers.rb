@@ -28,8 +28,8 @@ module Mina
           # __In the foreground,__ stream stdout to the output helper.
           Sys.stream_stdout(o) { |ch| print_char ch }
 
-          Process.waitpid pid_err
-          Process.kill 'TERM', pid_in
+          pid_in.join
+          pid_err.join
         end
 
       status.exitstatus
@@ -62,7 +62,7 @@ module Mina
       # errors *[1]*, and yield. Returns the PID.
 
       def stream_stderr!(err, &blk)
-        fork do
+        Thread.new do
           trap("INT") {}
 
           while str = err.gets #[0]
@@ -79,7 +79,7 @@ module Mina
       # stdin stream `i`. Returns the PID.
 
       def stream_stdin!(&blk)
-        fork do
+        Thread.new do
           trap("INT") {}
 
           while (char = STDIN.getbyte rescue nil)
